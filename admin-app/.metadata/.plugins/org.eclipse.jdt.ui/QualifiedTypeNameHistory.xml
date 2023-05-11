@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<qualifiedTypeNameHistroy>
+    <fullyQualifiedTypeName name="java.sql.Connection"/>
+    <fullyQualifiedTypeName name="java.sql.ResultSet"/>
+    <fullyQualifiedTypeName name="java.sql.PreparedStatement"/>
+    <fullyQualifiedTypeName name="java.sql.SQLException"/>
+    <fullyQualifiedTypeName name="javax.servlet.http.HttpSession"/>
+    <fullyQualifiedTypeName name="net.etfbl.ip.beans.CategoryBean"/>
+    <fullyQualifiedTypeName name="net.etfbl.ip.dto.Category"/>
+    <fullyQualifiedTypeName name="net.etfbl.ip.dto.Attribute"/>
+    <fullyQualifiedTypeName name="net.etfbl.ip.beans.AttributeBean"/>
+    <fullyQualifiedTypeName name="net.etfbl.ip.dao.AttributeDAO"/>
+    <fullyQualifiedTypeName name="net.etfbl.ip.dao.CategoryDAO"/>
+    <fullyQualifiedTypeName name="java.util.ArrayList"/>
+    <fullyQualifiedTypeName name="java.util.List"/>
+    <fullyQualifiedTypeName name="net.etfbl.ip.beans.UserBean"/>
+    <fullyQualifiedTypeName name="net.etfbl.ip.dto.User"/>
+    <fullyQualifiedTypeName name="net.etfbl.ip.dao.UserRole"/>
+    <fullyQualifiedTypeName name="javax.servlet.RequestDispatcher"/>
+    <fullyQualifiedTypeName name="net.etfbl.ip.dao.UserDAO"/>
+    <fullyQualifiedTypeName name="java.security.SecureRandom"/>
+    <fullyQualifiedTypeName name="java.io.Serializable"/>
+    <fullyQualifiedTypeName name="java.nio.charset.StandardCharsets"/>
+    <fullyQualifiedTypeName name="java.security.NoSuchAlgorithmException"/>
+    <fullyQualifiedTypeName name="java.security.MessageDigest"/>
+    <fullyQualifiedTypeName name="java.io.File"/>
+    <fullyQualifiedTypeName name="java.io.BufferedReader"/>
+    <fullyQualifiedTypeName name="java.io.FileReader"/>
+    <fullyQualifiedTypeName name="java.io.IOException"/>
+    <fullyQualifiedTypeName name="java.io.FileInputStream"/>
+    <fullyQualifiedTypeName name="net.etfbl.ip.beans.StatisticBean"/>
+</qualifiedTypeNameHistroy>

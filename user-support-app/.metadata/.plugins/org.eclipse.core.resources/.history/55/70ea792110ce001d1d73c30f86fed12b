@@ -1,0 +1,97 @@
+package net.etfbl.ip.beans;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
+import net.etfbl.ip.AppUser;
+import net.etfbl.ip.Message;
+import net.etfbl.ip.dao.ConnectionPool;
+import net.etfbl.ip.dao.DAOUtil;
+
+public class MessageBean {
+	
+	private List<Message> messages = new ArrayList<>();
+	private static ConnectionPool connectionPool = ConnectionPool.getConnectionPool();
+	private static final String SQL_SELECT_BY_ID = "SELECT * FROM user_support_message WHERE id = ?";
+	private static final String SQL_UPDATE_READ = "UPDATE user_support_message SET is_read = true WHERE id = ?";
+	
+	public List<Message> getMessages(){
+		//List<Message> retVal = new ArrayList<Message>();
+		Connection connection = null;
+		ResultSet rs = null;
+		Object values[] = {};
+		try {
+			connection = connectionPool.checkOut();
+			PreparedStatement pstmt = DAOUtil.prepareStatement(connection, "SELECT * FROM user_support_message", false, values);
+			rs = pstmt.executeQuery();
+			while (rs.next()) {
+				if(!rs.getBoolean("is_read")) {
+					Message message = new Message(rs.getLong("id"), rs.getString("message"), rs.getLong("sender_id"), rs.getBoolean("is_read"));
+					this.messages.add(message);
+				}
+          }
+			//this.messages = retVal;
+			pstmt.close();
+	        rs.close();
+		}catch (SQLException exp) {
+			exp.printStackTrace();
+		} finally {
+			connectionPool.checkIn(connection);
+		}
+		return this.messages;
+	}
+	
+	public Message getMessageById(Long id) {
+		Message message = null;
+	    Connection connection = null;
+	    PreparedStatement pstmt = null;
+	    ResultSet rs = null;
+	    Object values[] = { id };
+	    try {
+	        connection = connectionPool.checkOut();
+	        pstmt = DAOUtil.prepareStatement(connection, SQL_SELECT_BY_ID, false, values);
+	        rs = pstmt.executeQuery();
+	        if (rs.next()) {
+	        	message = new Message(rs.getLong("id"), rs.getString("message"), rs.getLong("sender_id"),
+	        			rs.getBoolean("is_read"));  
+	        }
+	        pstmt.close();
+	        rs.close();
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    } finally {
+	        connectionPool.checkIn(connection);
+	    }
+	    return message;
+	}
+	
+	public void setReadTrue(Message message) {
+		Connection connection = null;
+	    PreparedStatement pstmt = null;
+	    Object values[] = { message.getId() };
+	    try {
+	    	connection = connectionPool.checkOut();
+	        pstmt = DAOUtil.prepareStatement(connection, SQL_UPDATE_READ, false, values);
+	        pstmt.executeUpdate();
+	        pstmt.close();
+	    }catch (SQLException e) {
+	        e.printStackTrace();
+	    } finally {
+	        connectionPool.checkIn(connection);
+	    }
+	}
+	
+	public List<Message> getSearchedMessages(String s){
+		List<Message> searchedMessages = new ArrayList<>();
+		for(Message m : this.messages) {
+			if(m.getText().toLowerCase().contains(s))
+				searchedMessages.add(m);
+		}
+		return searchedMessages;
+	}
+	
+}

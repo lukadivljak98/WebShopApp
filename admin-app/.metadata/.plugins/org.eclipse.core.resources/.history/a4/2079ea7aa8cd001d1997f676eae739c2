@@ -1,0 +1,61 @@
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+    pageEncoding="ISO-8859-1"%>
+    <%@page import="net.etfbl.ip.dto.User"%>
+<%@page import="net.etfbl.ip.beans.UserBean"%>
+<jsp:useBean id="userBean" type="net.etfbl.ip.beans.UserBean" scope="session"/>
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>Insert title here</title>
+<link
+      rel="stylesheet" href="styles/style.css" type="text/css"
+    /> 
+</head>
+<body>
+<%
+    String userIdStr = (String) request.getAttribute("userId");
+    if (userIdStr != null) {
+        try {
+            Long userId = Long.parseLong(userIdStr);
+            User user = userBean.getById(userId);
+            
+            %>
+            <h1>Update Category:</h1>
+            <form method="POST" action="/AdminApp/?action=updateUser">
+                <input type="hidden" name="userId" value="<%=userId%>"/>
+                <h3>User First Name:</h3>
+                <input type="text" name="userFirstName" value="<%=user.getFirstName()%>"/><br/>
+                <h3>User Last Name:</h3>
+                <input type="text" name="userLastName" value="<%=user.getLastName()%>"/><br/>
+                <h3>Username:</h3>
+                <input type="text" name="username" value="<%=user.getUsername()%>"/><br/>
+                <h3>User Email:</h3>
+                <input type="text" name="userEmail" value="<%=user.getEmail()%>"/><br/>
+                <h3>User Password:</h3>
+                <input type="password" name="userPassword" value="<%=user.getPassword()%>"/><br/>
+                <h3>User Role:</h3>
+                <input type="text" name="userRole" value="<%=user.getRole()%>"/><br/>
+                <h3>User City:</h3>
+                <input type="text" name="userCity" value="<%=user.getCity()%>"/><br/>
+                <h3>Is Enabled:</h3>
+                <input type="checkbox" name="userIsEnabled" value="<%=user.getEnabled()%>"
+                <%= user.getEnabled() ? "checked" : "" %>/><br/>
+                <h3>Is Locked:</h3>
+                <input type="checkbox" name="userIsLocked" value="<%=user.isLocked()%>"
+                <%= user.isLocked() ? "checked" : "" %>/><br/><br/>
+                <label><%=user.isLocked() %></label>
+                <input type="submit" value="Update User" name="submit"/><br/>
+                <h3><%=session.getAttribute("notification").toString()%></h3><br/>
+            </form>
+            <%
+        } catch (NumberFormatException e) {
+            out.println("Invalid user ID: " + userIdStr);
+        }
+    } else {
+        out.println("User ID parameter is missing");
+    }
+%>
+</body>
+</html>

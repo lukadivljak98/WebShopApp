@@ -1,0 +1,48 @@
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+    pageEncoding="ISO-8859-1"%>
+    <%@ page import="java.util.*" %>
+<%@ page import="net.etfbl.ip.beans.MessageBean, net.etfbl.ip.Message" %>
+
+<!DOCTYPE html>
+ <%
+ 			MessageBean messageBean = new MessageBean();
+ 			String searchTerm = request.getParameter("search");
+ 			List<Message> messages = messageBean.getMessages(searchTerm);;
+ 			
+ %>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+	<title>Messages</title>
+	<link rel="stylesheet" type="text/css" href="styles/style.css"></link>
+</head>
+<body>
+	<h1>Messages</h1>
+	<form method="POST" action="messages.jsp?search=<%= searchTerm %>">
+	<input type="text" id="search" name="search"/>
+	<input type="submit" value="Pretrazi" name="pretrazi" /><br />
+	</form>
+	<table class="table">
+        <tr>
+            <th style="width: 150px">Username</th>
+            <th style="width: 300px">Message</th>
+            <th style="width: 100px">Actions</th>
+        </tr>
+
+       
+		<%
+		if(searchTerm == null){
+            for (Message message : messages) {
+            	
+        %>
+        <tr>
+            <td><%= message.getAppUser().getUsername() %></td>
+            <td><%= message.getText() %></td>
+            <td><a href="respond.jsp?id=<%= message.getId() %>">Respond</a></td>
+        </tr>
+        <%
+            }}
+        %>
+    </table>
+</body>
+</html>

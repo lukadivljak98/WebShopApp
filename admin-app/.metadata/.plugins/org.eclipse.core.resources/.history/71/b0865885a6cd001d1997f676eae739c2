@@ -1,0 +1,268 @@
+package net.etfbl.project.controller;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import net.etfbl.ip.beans.AttributeBean;
+import net.etfbl.ip.beans.CategoryBean;
+import net.etfbl.ip.beans.StatisticBean;
+import net.etfbl.ip.beans.UserBean;
+import net.etfbl.ip.dao.UserRole;
+import net.etfbl.ip.dto.Attribute;
+import net.etfbl.ip.dto.Category;
+import net.etfbl.ip.dto.User;
+
+/**
+ * Servlet implementation class Controller
+ */
+@WebServlet("/Controller")
+public class Controller extends HttpServlet {
+	private static final long serialVersionUID = 1L;
+       
+    /**
+     * @see HttpServlet#HttpServlet()
+     */
+    public Controller() {
+        super();
+    }
+
+	/**
+	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		request.setCharacterEncoding("UTF-8");
+		String address = "/WEB-INF/pages/login.jsp";
+		String action = request.getParameter("action");
+		HttpSession session = request.getSession();
+
+		session.setAttribute("notification", "");
+		
+		if(action == null || action.equals("")) {
+			address = "/WEB-INF/pages/login.jsp";
+		}
+		else if(action.equalsIgnoreCase("logout")) {
+			UserBean userBean = new UserBean();
+			userBean.logout();
+			session.invalidate();
+			address = "/WEB-INF/pages/login.jsp";
+		}
+		else if(action.equals("login")) {
+			String username = request.getParameter("username");
+			String password = request.getParameter("password");
+			String passwordHash = getHash(password);
+			UserBean userBean = new UserBean();
+			if (userBean.login(username, passwordHash)) {
+				session.setAttribute("userBean", userBean);
+				CategoryBean categoryBean = new CategoryBean();
+				session.setAttribute("categoryBean", categoryBean);
+				AttributeBean attributeBean = new AttributeBean();
+				session.setAttribute("attributeBean", attributeBean);
+				StatisticBean statisticBean = new StatisticBean();
+				session.setAttribute("statisticBean", statisticBean);
+				address = "/WEB-INF/pages/dashboard.jsp";
+			} else {
+				session.setAttribute("notification", "Pogresni parametri za pristup");
+			}
+		}
+		else {
+			if(action.equals("createCategory")) {
+				address = "/WEB-INF/pages/dashboard.jsp";
+				CategoryBean categoryBean = (CategoryBean) session.getAttribute("categoryBean");
+				AttributeBean attributeBean = (AttributeBean) session.getAttribute("attributeBean");
+				if(request.getParameter("submit") != null && request.getParameter("category") != null) {
+					try {
+						Category category = new Category(0L, request.getParameter("category"));
+						List<Attribute> attributes = new ArrayList<Attribute>();
+						for(String a : request.getParameter("attributes").split(", ")) {
+							Attribute newAttribute = new Attribute(0L, a, category.getId());
+							attributes.add(newAttribute);
+							//attributeBean.add(newAttribute);
+						}
+						category.setAttributes(attributes);
+						if(categoryBean.add(category))
+							address = "/WEB-INF/pages/dashboard.jsp";
+//						for(Attribute a : category.getAttributes()) {
+//							attributeBean.add(a);
+//						}
+					}catch(Exception e) {
+						session.setAttribute("notification", "ERROR: " + e.getMessage());
+					}
+				}
+			}
+			else if(action.equals("deleteCategory")) {
+				address = "/WEB-INF/pages/dashboard.jsp";
+				CategoryBean categoryBean = (CategoryBean) session.getAttribute("categoryBean");
+				try {
+					Category categoryToDelete = categoryBean.getById(Long.parseLong(request.getParameter("categoryId")));
+					if(categoryBean.delete(categoryToDelete))
+						address = "/WEB-INF/pages/dashboard.jsp";
+				}catch(Exception e) {
+					session.setAttribute("notification", "ERROR: " + e.getMessage());
+				}
+			}
+			else if(action.equals("updateCategory")) {
+				address = "/WEB-INF/pages/dashboard.jsp";
+			    CategoryBean categoryBean = (CategoryBean) session.getAttribute("categoryBean");
+			    AttributeBean attributeBean = (AttributeBean) session.getAttribute("attributeBean");
+			    if(request.getParameter("submit") != null && request.getParameter("categoryName") != null) {
+			        try {
+			            long categoryId = Long.parseLong(request.getParameter("categoryId"));
+			            Category category = categoryBean.getById(categoryId);
+			            category.setType(request.getParameter("categoryName"));
+			            List<Attribute> attributes = attributeBean.getAttributesByCategoryId(categoryId);
+			            for(String a : request.getParameter("categoryAttributes").replaceAll("[\\[\\]]", "").split(", ")) {
+			                boolean found = false;
+			                for(Attribute attribute : attributes) {
+			                    if(attribute.getName().equals(a)) {
+			                        found = true;
+			                        break;
+			                    }
+			                }
+			                if(!found) {
+			                    Attribute newAttribute = new Attribute(0L, a, category.getId());
+			                    attributeBean.add(newAttribute);
+			                    attributes.add(newAttribute);
+			                }
+			            }
+			            for(Attribute attribute : attributes) {
+			                boolean found = false;
+			                for(String a : request.getParameter("categoryAttributes").replaceAll("[\\[\\]]", "").split(", ")) {
+			                    if(attribute.getName().equals(a)) {
+			                        found = true;
+			                        break;
+			                    }
+			                }
+			                if(!found) {
+			                    attributeBean.delete(attribute);
+			                    //AttributeDAO.delete(attribute);
+			                    attributes.remove(attribute);
+			                }
+			            }
+			            category.setAttributes(attributes);
+			            categoryBean.update(category);
+			            //CategoryDAO.update(category);
+			        } catch (Exception e) {
+			            //session.setAttribute("notification", "ERROR: " + e.getMessage());
+			        }
+			    }
+			}
+			else if(action.equals("createUser")) {
+				address = "/WEB-INF/pages/dashboard.jsp";
+				UserBean userBean = (UserBean) session.getAttribute("userBean");
+				
+				if(request.getParameter("submit") != null && request.getParameter("userFirstName") != null && request.getParameter("userLastName") != null
+						&& request.getParameter("username") != null && request.getParameter("userEmail") != null && request.getParameter("userPassword") != null 
+						&& request.getParameter("userRole") != null && request.getParameter("userCity") != null) {
+					if(!userBean.isUserNameAllowed(request.getParameter("username"))) {
+						session.setAttribute("notification", "Username is already taken!");
+					}
+					else if(!userBean.isEmailAllowed(request.getParameter("userEmail"))) {
+						session.setAttribute("notification", "Email is already taken!");
+					}
+					else {
+					try {
+						String password = request.getParameter("userPassword");
+						String passwordHash = getHash(password);
+						User user = new User(0L, request.getParameter("userFirstName"),request.getParameter("userLastName"),
+								request.getParameter("username"), request.getParameter("userEmail"), passwordHash,
+								UserRole.valueOf(request.getParameter("userRole")), request.getParameter("userCity"), Boolean.parseBoolean(request.getParameter("userIsEnabled")),
+								Boolean.parseBoolean(request.getParameter("userLocked")));
+						
+						if(userBean.add(user))
+							address = "/WEB-INF/pages/dashboard.jsp";
+					}catch(Exception e) {
+						session.setAttribute("notification", "ERROR: " + e.getMessage());
+					}
+					}
+				}
+			}
+			else if(action.equals("deleteUser")) {
+				address = "/WEB-INF/pages/dashboard.jsp";
+				UserBean userBean = (UserBean) session.getAttribute("userBean");
+				try {
+					User userToDelete = userBean.getById(Long.parseLong(request.getParameter("userId")));
+					if(userBean.delete(userToDelete)) {
+						address = "/WEB-INF/pages/dashboard.jsp";
+					}
+				}catch(Exception e) {
+					session.setAttribute("notification", "ERROR: " + e.getMessage());
+				}
+			}
+			else if(action.equals("updateUser")) {
+				address = "/WEB-INF/pages/dashboard.jsp";
+			    UserBean userBean = (UserBean) session.getAttribute("userBean");
+			    if(request.getParameter("submit") != null && request.getParameter("username") != null
+			    		&& request.getParameter("userFirstName") != null && request.getParameter("userLastName") != null
+			    		&& request.getParameter("userEmail") != null && request.getParameter("userPassword") != null 
+			    		&& request.getParameter("userCity") != null && request.getParameter("userRole") != null) {
+			        try {
+			            long userId = Long.parseLong(request.getParameter("userId"));
+			            User user = userBean.getById(userId);
+			            user.setFirstName(request.getParameter("userFirstName"));
+			            user.setLastName(request.getParameter("userLastName"));
+			            user.setUsername(request.getParameter("username"));
+			            user.setEmail(request.getParameter("userEmail"));
+			            String password = request.getParameter("userPassword");
+						String passwordHash = getHash(password);
+			            user.setPassword(passwordHash);
+			            user.setRole(UserRole.valueOf(request.getParameter("userRole")));
+			            user.setCity(request.getParameter("userCity"));
+			            user.setEnabled(Boolean.parseBoolean(request.getParameter("userIsEnabled")));
+			            user.setLocked(Boolean.parseBoolean(request.getParameter("userLocked")));
+			            userBean.update(user);
+			        } catch (Exception e) {
+			            session.setAttribute("notification", "ERROR: " + e.getMessage());
+			        }
+			    }
+			}
+			else if(action.equals("goToUpdateUser")) {
+				address = "/WEB-INF/pages/updateUser.jsp";
+				request.setAttribute("userId", request.getParameter("userId"));
+			}
+			else{
+				address = "/WEB-INF/pages/404.jsp";
+			}
+		}
+		RequestDispatcher dispatcher = request.getRequestDispatcher(address);
+		dispatcher.forward(request, response);
+	}
+
+	/**
+	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		doGet(request, response);
+	}
+
+	 public String getHash(String input) {
+		 StringBuilder hexString = new StringBuilder();
+		 try {
+	        MessageDigest md = MessageDigest.getInstance("SHA-256");
+	        byte[] hash = md.digest(input.getBytes(StandardCharsets.UTF_8));
+	        hexString = new StringBuilder();
+	        for (byte b : hash) {
+	            String hex = Integer.toHexString(0xff & b);
+	            if (hex.length() == 1) {
+	                hexString.append('0');
+	            }
+	            hexString.append(hex);
+	        }
+	        
+		 }catch(NoSuchAlgorithmException e) {
+			 
+		 }
+		 return hexString.toString();
+	    }
+}

@@ -1,0 +1,121 @@
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1" pageEncoding="ISO-8859-1"%>
+<%@page import="net.etfbl.ip.dto.Category"%>
+<%@page import="net.etfbl.ip.beans.CategoryBean"%>
+<%@page import="net.etfbl.ip.dto.User"%>
+<%@page import="net.etfbl.ip.beans.UserBean"%>
+<%@page import="net.etfbl.ip.beans.AttributeBean"%>
+<jsp:useBean id="categoryBean" type="net.etfbl.ip.beans.CategoryBean" scope="session"/>
+<jsp:useBean id="attributeBean" type="net.etfbl.ip.beans.AttributeBean" scope="session"/>
+<jsp:useBean id="userBean" type="net.etfbl.ip.beans.UserBean" scope="session"/>
+<jsp:useBean id="statisticBean" type="net.etfbl.ip.beans.StatisticBean" scope="session"/>
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html"; charset="UTF-8">
+		<title>Admin Dashboard</title>
+		 <link
+      rel="stylesheet" href="styles/style.css" type="text/css"
+    /> 
+	</head>
+	<body>
+		<h1>ETF_IP WEBSHOP ADMIN APP</h1>
+		<a href="?action=logout">Odjava sa sistema</a>
+		<hr/>
+		<h2>Manage Categories:</h2> <br/>
+		<form method="POST" action="?action=createCategory">
+			<h3>Create Category:</h3><br/>
+			Category Name: <input type="text" name="category" id="category"/><br/><br/>
+			Category Attributes: <input type="text" name="attributes" id="attributes"/><br/><br/>
+			<input type="submit" value="Add Category" name="submit"/><br/>
+			<h3><%=session.getAttribute("notification").toString()%></h3><br/>
+		</form>
+			<h3>All Categories:</h3>
+			<%
+				for(Category category : categoryBean.getAll()){
+				    out.println("<div>");
+					out.println("<br/>Category Name: " + category.getType() + "<br/><br/>");
+					out.println("Category Attributes: " + category.getAttributes() + "<br/><br/>");
+					out.println("<form method='POST' action='?action=deleteCategory'>");
+				    out.println("<input type='hidden' name='categoryId' value='" + category.getId() + "'/>");
+				    out.println("<input type='submit' value='Delete'/>");
+				    out.println("</form>");
+					//out.println("<a href=\"updateCategory.jsp?categoryId=" + category.getId() + "\">Edit</a><br/><br/>");
+				    out.println("<form method='POST' action='?action=onUpdateCategory'>");
+				    out.println("<input type='hidden' name='categoryId' value='" + category.getId() + "'/>");
+				    out.println("<input type='submit' value='Edit'/>");
+				    out.println("</form><br/><br/>");
+				}
+			%>
+		<hr/>
+		<h2>Manage Users:</h2><br/>
+		<form method="POST" action="?action=createUser">
+			<h3>Create User:</h3><br/>
+			User First Name: <input type="text" name="userFirstName" id="userFirstName"/><br/><br/>
+			User Last Name: <input type="text" name="userLastName" id="userLastName"/><br/><br/>
+			Username: <input type="text" name="username" id="username"/><br/><br/>
+			Email: <input type="text" name="userEmail" id="userEmail"/><br/><br/>
+			Password: <input type="password" name="userPassword" id="userPassword"/><br/><br/>
+			User Role: <input type="text" name="userRole" id="userRole"/><br/><br/>
+			User City: <input type="text" name="userCity" id="userCity"/><br/><br/>
+			Is Enabled: <input type="checkbox" name="userIsEnabled" id="userIsEnabled" value="true"/><br/><br/>
+			Is Locked: <input type="checkbox" name="userLocked" id="userLocked" value="true"/><br/><br/>
+			<input type="submit" value="Add User" name="submit"/><br/><br/>
+			<h3><%=session.getAttribute("notification").toString()%></h3><br/>
+		</form>
+		
+			<h3>All Users:</h3>
+
+			<table class="table">
+  				<thead>
+   					<tr>
+     				<th style="border-style: solid; width: 200px">First Name</th>
+      				<th style="border-style: solid; width: 200px">Last Name</th>
+      				<th style="border-style: solid; width: 200px">Username</th>
+     				<th style="border-style: solid; width: 200px">Email</th>
+      				<th style="border-style: solid; width: 200px">Role</th>
+      				<th style="border-style: solid; width: 200px">City</th>
+      				<th style="border-style: solid; width: 200px">Is Enabled</th>
+      				<th style="border-style: solid; width: 200px">Is Locked</th>
+      				<th style="border-style: solid; width: 200px">Delete</th>
+      				<th style="border-style: solid; width: 200px">Update</th>
+    				</tr>
+  				</thead>
+  				<tbody>
+    			<% for(User user : userBean.getAll()) { %>
+    				<tr>
+      				<td style="border-style: solid"><%= user.getFirstName() %></td>
+      				<td style="border-style: solid"><%= user.getLastName() %></td>
+      				<td style="border-style: solid"><%= user.getUsername() %></td>
+      				<td style="border-style: solid"><%= user.getEmail() %></td>
+      				<td style="border-style: solid"><%= user.getRole() %></td>
+      				<td style="border-style: solid"><%= user.getCity() %></td>
+      				<td style="border-style: solid"><%= user.getEnabled() %></td>
+      				<td style="border-style: solid"><%= user.isLocked() %></td>
+      				<td style="border-style: solid">
+        			<form method="POST" action="?action=deleteUser">
+          			<input type="hidden" name="userId" value="<%= user.getId() %>">
+          			<input type="submit" value="Delete">
+        			</form>
+      				</td>
+      				<td style="border-style: solid">
+        			<form method="POST" action="?action=goToUpdateUser">
+          			<input type="hidden" name="userId" value="<%= user.getId() %>">
+          			<input type="submit" value="Edit">
+       				 </form>
+      				</td>
+    				</tr>
+   				 <% } %>
+  				</tbody>
+			</table><br/>
+			<hr/>
+			<div style="height: 300px; overflow: auto;">
+  				<h2>Statistic:</h2>
+  				<br/>
+  					<%
+    					out.println(statisticBean.readLog());
+  					%>
+			</div>
+
+	</body>
+</html>
